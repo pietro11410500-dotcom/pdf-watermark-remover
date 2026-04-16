@@ -1,0 +1,19 @@
+# Python related
+*.py[cod]
+__pycache__/
+
+# Streamlit related
+.stlite/
+.scripts/
+
+# Virtual Environment
+.env
+.venv
+
+# Test and Coverage reports
+*.cover
+*.py,cover
+htmlcov/
+
+# Jupyter Notebook
+.ipynb_checkpoints/
