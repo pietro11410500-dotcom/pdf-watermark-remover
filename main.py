@@ -1,46 +1,33 @@
 import streamlit as st
 import PyPDF2
-import pdf2image
-import cv2
-import numpy as np
-from PIL import Image, ImageEnhance, ImageFilter
-import io
-import os
-from pathlib import Path
-import tempfile
 
-st.set_page_config(page_title="Watermark Remover", layout="centered")
+def remove_watermark(pdf_file, watermark_file):
+    pdf_reader = PyPDF2.PdfReader(pdf_file)
+    watermark_reader = PyPDF2.PdfReader(watermark_file)
+    output_pdf = PyPDF2.PdfWriter()
 
-st.markdown("""
-    <style>
-    .main { max-width: 800px; margin: 0 auto; }
-    .success { color: green; font-weight: bold; }
-    .error { color: red; font-weight: bold; }
-    </style>
-""", unsafe_allow_html=True)
+    for page in range(len(pdf_reader)):
+        pdf_page = pdf_reader.pages[page]
+        watermark_page = watermark_reader.pages[0]
 
-st.title("🔧 PDF Watermark Remover")
+        # Merge the watermark with the current page
+        pdf_page.merge_page(watermark_page)
+        output_pdf.add_page(pdf_page)
 
-if "step" not in st.session_state:
-    st.session_state.step = 1
-if "pdf_file" not in st.session_state:
-    st.session_state.pdf_file = None
-if "watermark_text" not in st.session_state:
-    st.session_state.watermark_text = ""
-if "locations" not in st.session_state:
-    st.session_state.locations = []
-if "processed_pdf" not in st.session_state:
-    st.session_state.processed_pdf = None
+    output_file = "output.pdf"
+    with open(output_file, "wb") as f:
+        output_pdf.write(f)
 
-if st.session_state.step == 1:
-    st.subheader("Step 1: Upload PDF File")
-    uploaded_file = st.file_uploader("Select a PDF file", type=["pdf"])
-    if uploaded_file:
-        if uploaded_file.type == "application/pdf":
-            st.session_state.pdf_file = uploaded_file
-            st.success("✅ PDF detected successfully!")
-            if st.button("Next"):
-                st.session_state.step = 2
-                st.rerun()
-        else:
-            st.error("❌ The file is not a valid PDF!")
+    return output_file
+
+st.title("PDF Watermark Remover")
+
+uploaded_pdf = st.file_uploader("Choose a PDF file", type="pdf")
+uploaded_watermark = st.file_uploader("Choose a watermark file", type="pdf")
+
+if st.button("Remove Watermark"):
+    if uploaded_pdf and uploaded_watermark:
+        output_file = remove_watermark(uploaded_pdf, uploaded_watermark)
+        st.success(f"Watermark removed! Download it [here](./{output_file})")
+    else:
+        st.error("Please upload both PDF and watermark files."),
